@@ -1,0 +1,23 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/test_db
+    username: user
+    password: password
+    driverClassName: org.postgresql.Driver
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+  flyway:
+    enabled: true
+
+logging:
+  level:
+    root: INFO
+    # org.hibernate.SQL: DEBUG
+    # org.hibernate.type.descriptor.sql: TRACE
+
+auth:
+  scheme: apikey
+  jwt:
+    secret: dG9vbXVjaHNlY3JldHZhbHVldG9vbXVjaHNlY3JldHZhbHVl
