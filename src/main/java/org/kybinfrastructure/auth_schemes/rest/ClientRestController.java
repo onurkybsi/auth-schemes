@@ -39,9 +39,9 @@ class ClientRestController {
   }
 
   @GetMapping(value = "/{id}", produces = {"application/json"})
-  @PostAuthorize("returnObject.body.apiKey == authentication.principal.username")
+  @PostAuthorize("returnObject.body.apiKey == authentication.principal.username or hasAuthority('GET_ALL_CLIENTS')")
   public ResponseEntity<Client> get(@PathVariable("id") Long id) {
-    return clientStorageAdapter.get(id).map(ResponseEntity::ok)
+    return clientStorageAdapter.getById(id).map(ResponseEntity::ok)
         .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
   }
 

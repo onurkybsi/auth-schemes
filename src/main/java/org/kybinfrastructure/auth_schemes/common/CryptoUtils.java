@@ -1,4 +1,4 @@
-package org.kybinfrastructure.auth_schemes;
+package org.kybinfrastructure.auth_schemes.common;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;

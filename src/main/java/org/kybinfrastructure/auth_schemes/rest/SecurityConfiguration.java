@@ -1,10 +1,11 @@
-package org.kybinfrastructure.auth_schemes;
+package org.kybinfrastructure.auth_schemes.rest;
 
 import java.util.Arrays;
 import java.util.stream.Stream;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.kybinfrastructure.auth_schemes.common.Authority;
+import org.kybinfrastructure.auth_schemes.common.CryptoUtils;
 import org.kybinfrastructure.auth_schemes.user.UserStorageAdapter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -25,6 +26,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
@@ -62,11 +64,23 @@ class SecurityConfiguration {
   @ConditionalOnProperty(value = "auth.scheme", havingValue = "apikey")
   public SecurityFilterChain securityFilterChainForApiKey(HttpSecurity httpSecurity,
       ApiKeyFilter apiKeyFilter) throws Exception {
+    AntPathRequestMatcher clientsGetEndpointsMatcher =
+        new AntPathRequestMatcher("/clients/**", HttpMethod.GET.toString());
+    AntPathRequestMatcher createClientEndpointMatcher =
+        new AntPathRequestMatcher("/clients", HttpMethod.POST.toString());
+    AntPathRequestMatcher usersGetEndpointsMatcher =
+        new AntPathRequestMatcher("/users/**", HttpMethod.GET.toString());
+    AntPathRequestMatcher createUserEndpointMatcher =
+        new AntPathRequestMatcher("/users", HttpMethod.POST.toString());
+
     return httpSecurity
-        .authorizeHttpRequests(c -> c.requestMatchers(HttpMethod.GET, "/clients/**")
-            .hasAnyAuthority(Stream.of(Authority.Name.values()).map(Authority.Name::toString)
-                .toArray(String[]::new))
-            .requestMatchers(HttpMethod.POST, "/clients").permitAll())
+        .authorizeHttpRequests(c -> c.requestMatchers(clientsGetEndpointsMatcher)
+            .hasAuthority(Authority.Name.BASIC.toString())
+            .requestMatchers(createClientEndpointMatcher)
+            .hasAuthority(Authority.Name.CREATE_CLIENT.toString())
+            .requestMatchers(usersGetEndpointsMatcher).hasAuthority(Authority.Name.BASIC.toString())
+            .requestMatchers(createUserEndpointMatcher)
+            .hasAuthority(Authority.Name.CREATE_USER.toString()))
         .csrf(c -> c.disable()).sessionManagement(c -> c.disable())
         .addFilterBefore(apiKeyFilter, UsernamePasswordAuthenticationFilter.class).build();
   }

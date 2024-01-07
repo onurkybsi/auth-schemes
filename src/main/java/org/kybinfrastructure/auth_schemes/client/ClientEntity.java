@@ -2,6 +2,7 @@ package org.kybinfrastructure.auth_schemes.client;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import org.springframework.format.annotation.DateTimeFormat;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -33,7 +34,7 @@ class ClientEntity {
   private Long id;
 
   @NotNull
-  @Size(min = 0, max = 50)
+  @Size(min = 0, max = 255)
   private String name;
 
   @NotNull
@@ -52,10 +53,12 @@ class ClientEntity {
   private List<ClientAuthorityEntity> authorities;
 
   @NotNull
+  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
   @Column(name = "modification_date")
   private OffsetDateTime modificationDate;
 
   @NotNull
+  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
   @Column(name = "creation_date")
   private OffsetDateTime creationDate;
 

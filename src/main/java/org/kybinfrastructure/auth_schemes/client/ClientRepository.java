@@ -9,4 +9,6 @@ interface ClientRepository extends CrudRepository<ClientEntity, Long> {
 
   Optional<ClientEntity> findByApiKey(String apiKey);
 
+  Optional<ClientEntity> findByName(String name);
+
 }

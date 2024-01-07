@@ -38,7 +38,7 @@ class UserRestController {
   }
 
   @GetMapping(value = "/{id}", produces = {"application/json"})
-  @PostAuthorize("returnObject.body.email == authentication.principal.username")
+  @PostAuthorize("returnObject.body.email == authentication.principal.username or hasAuthority('GET_ALL_USERS')")
   public ResponseEntity<User> get(@PathVariable("id") Long id) {
     return userStorageAdapter.get(id).map(ResponseEntity::ok)
         .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));

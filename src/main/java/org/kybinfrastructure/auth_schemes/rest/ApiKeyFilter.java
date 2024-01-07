@@ -1,4 +1,4 @@
-package org.kybinfrastructure.auth_schemes;
+package org.kybinfrastructure.auth_schemes.rest;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -7,11 +7,13 @@ import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.kybinfrastructure.auth_schemes.client.Client;
 import org.kybinfrastructure.auth_schemes.client.ClientStorageAdapter;
+import org.kybinfrastructure.auth_schemes.common.CryptoUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -27,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @ConditionalOnProperty(value = "auth.scheme", havingValue = "apikey")
 @Slf4j
-class ApiKeyFilter extends OncePerRequestFilter {
+final class ApiKeyFilter extends OncePerRequestFilter {
 
   private final ClientStorageAdapter clientStorageAdapter;
 
@@ -41,11 +43,9 @@ class ApiKeyFilter extends OncePerRequestFilter {
       return;
     }
 
-    Optional<Client> client = clientStorageAdapter.get(apiKey);
+    Optional<Client> client = clientStorageAdapter.getByApiKey(apiKey);
     if (client.isEmpty()) {
-      log.debug("No client exists with the given API key: {}", apiKey);
-      filterChain.doFilter(request, response);
-      return;
+      throw new UsernameNotFoundException("No client exists with the given API key: " + apiKey);
     }
 
     if (!isClientSecretValid(client.get(), clientSecret)) {

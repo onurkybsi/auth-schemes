@@ -1,4 +1,4 @@
-package org.kybinfrastructure.auth_schemes;
+package org.kybinfrastructure.auth_schemes.rest;
 
 import java.io.IOException;
 import javax.crypto.SecretKey;
@@ -28,7 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @ConditionalOnProperty(value = "auth.scheme", havingValue = "token")
 @Slf4j
-class JwtTokenFilter extends OncePerRequestFilter {
+final class JwtTokenFilter extends OncePerRequestFilter {
 
   private final SecretKey jwtSecret;
   private final UserStorageAdapter userStorageAdapter;

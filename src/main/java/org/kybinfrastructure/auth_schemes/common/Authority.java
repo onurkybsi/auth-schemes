@@ -16,14 +16,13 @@ public final class Authority {
   @JsonProperty(value = "name", access = JsonProperty.Access.READ_ONLY)
   private Name name;
 
-  @NotNull
   @Column(name = "creation_date")
   @JsonProperty(value = "creationDate", access = JsonProperty.Access.READ_ONLY)
   private OffsetDateTime creationDate;
 
   public enum Name {
 
-    BASIC, GET_ALL_USERS, GET_ALL_CLIENTS
+    BASIC, GET_ALL_USERS, CREATE_USER, GET_ALL_CLIENTS, CREATE_CLIENT
 
   }
 

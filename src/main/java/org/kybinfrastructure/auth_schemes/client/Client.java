@@ -8,9 +8,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 
 @AllArgsConstructor
+@Builder
 @Data
 public final class Client {
 
@@ -18,11 +20,11 @@ public final class Client {
   private Long id;
 
   @NotNull
-  @Size(min = 0, max = 50)
+  @Size(min = 0, max = 255)
   @JsonProperty(value = "name")
   private String name;
 
-  @JsonIgnore
+  @JsonProperty(value = "apiKey", access = JsonProperty.Access.READ_ONLY)
   private String apiKey;
 
   @JsonIgnore

@@ -1,4 +1,4 @@
-package org.kybinfrastructure.auth_schemes;
+package org.kybinfrastructure.auth_schemes.common;
 
 import java.time.Clock;
 import java.time.Instant;

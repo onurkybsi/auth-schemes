@@ -2,6 +2,7 @@ package org.kybinfrastructure.auth_schemes.client;
 
 import java.io.Serializable;
 import java.time.OffsetDateTime;
+import org.springframework.format.annotation.DateTimeFormat;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EmbeddedId;
@@ -29,6 +30,7 @@ class ClientAuthorityEntity {
   private AuthorityId id;
 
   @NotNull
+  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
   @Column(name = "creation_date")
   private OffsetDateTime creationDate;
 

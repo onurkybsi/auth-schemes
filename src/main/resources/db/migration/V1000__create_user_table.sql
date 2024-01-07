@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS user_authority (
 );
 CREATE TABLE IF NOT EXISTS client (
   id SERIAL PRIMARY KEY,
-  name VARCHAR(50) NOT NULL,
+  name VARCHAR UNIQUE NOT NULL,
   api_key VARCHAR UNIQUE NOT NULL,
   hashed_api_secret VARCHAR NOT NULL,
   modification_date TIMESTAMP NOT NULL,
