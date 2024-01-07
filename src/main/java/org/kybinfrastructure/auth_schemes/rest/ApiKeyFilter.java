@@ -7,14 +7,13 @@ import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.kybinfrastructure.auth_schemes.client.Client;
 import org.kybinfrastructure.auth_schemes.client.ClientStorageAdapter;
-import org.kybinfrastructure.auth_schemes.common.CryptoUtils;
+import org.kybinfrastructure.auth_schemes.common.util.CryptoUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import jakarta.servlet.FilterChain;
@@ -26,9 +25,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
+@Slf4j
 @Component
 @ConditionalOnProperty(value = "auth.scheme", havingValue = "apikey")
-@Slf4j
 final class ApiKeyFilter extends OncePerRequestFilter {
 
   private final ClientStorageAdapter clientStorageAdapter;
@@ -58,9 +57,8 @@ final class ApiKeyFilter extends OncePerRequestFilter {
         .map(a -> new SimpleGrantedAuthority(a.getName().toString())).toList();
     UsernamePasswordAuthenticationToken authenticationToken =
         new UsernamePasswordAuthenticationToken(User.builder().username(client.get().getApiKey())
-            .password(clientSecret).disabled(false).authorities(grantedAuthorities).build(), null,
+            .password(clientSecret).authorities(grantedAuthorities).build(), null,
             grantedAuthorities);
-    authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
     SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 
     filterChain.doFilter(request, response);
@@ -70,12 +68,13 @@ final class ApiKeyFilter extends OncePerRequestFilter {
   private boolean isClientSecretValid(Client client, String givenClientSecret) {
     try {
       byte[] salt = Arrays.copyOfRange(Hex.decodeHex(client.getHashedApiSecret()), 0, 16);
-      byte[] secretHash = CryptoUtils.hash(givenClientSecret, salt);
-      byte[] concatenatedSaltAndHash = Arrays.copyOf(salt, salt.length + secretHash.length);
-      System.arraycopy(secretHash, 0, concatenatedSaltAndHash, salt.length, secretHash.length);
-      String encodedGivenClientSecret = Hex.encodeHexString(concatenatedSaltAndHash);
+      byte[] givenSecretHash = CryptoUtils.hash(givenClientSecret, salt);
+      byte[] concatenatedSaltAndHash = Arrays.copyOf(salt, salt.length + givenSecretHash.length);
+      System.arraycopy(givenSecretHash, 0, concatenatedSaltAndHash, salt.length,
+          givenSecretHash.length);
+      String encodedGivenClientSecretHash = Hex.encodeHexString(concatenatedSaltAndHash);
 
-      return encodedGivenClientSecret.equals(client.getHashedApiSecret());
+      return encodedGivenClientSecretHash.equals(client.getHashedApiSecret());
     } catch (DecoderException e) {
       throw new RuntimeException("salt couldn't be extracted!");
     }

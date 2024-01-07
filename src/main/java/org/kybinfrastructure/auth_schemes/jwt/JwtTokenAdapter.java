@@ -8,8 +8,10 @@ import java.util.Objects;
 import javax.crypto.SecretKey;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
-import org.kybinfrastructure.auth_schemes.common.CryptoUtils;
-import org.kybinfrastructure.auth_schemes.common.TimeUtils;
+import org.kybinfrastructure.auth_schemes.common.exception.InvalidDataException;
+import org.kybinfrastructure.auth_schemes.common.exception.NotExistException;
+import org.kybinfrastructure.auth_schemes.common.util.CryptoUtils;
+import org.kybinfrastructure.auth_schemes.common.util.TimeUtils;
 import org.kybinfrastructure.auth_schemes.user.User;
 import org.kybinfrastructure.auth_schemes.user.UserStorageAdapter;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,7 +21,7 @@ import io.jsonwebtoken.security.Keys;
 import lombok.NonNull;
 
 @Component
-public final class JwtAuthAdapter {
+public final class JwtTokenAdapter {
 
   private static final String ISSUER = "auth-schemes";
 
@@ -27,8 +29,8 @@ public final class JwtAuthAdapter {
   private final SecretKey jwtSecret;
   private final TimeUtils timeUtils;
 
-  public JwtAuthAdapter(@NonNull UserStorageAdapter userStorageAdapter,
-      @NonNull @Value("${auth.jwt.secret}") String jwtSecret, TimeUtils timeUtils) {
+  JwtTokenAdapter(@NonNull UserStorageAdapter userStorageAdapter,
+      @NonNull @Value("${auth.jwtSecret}") String jwtSecret, TimeUtils timeUtils) {
     this.userStorageAdapter = userStorageAdapter;
     this.jwtSecret = Keys.hmacShaKeyFor(jwtSecret.getBytes());
     this.timeUtils = timeUtils;
@@ -38,7 +40,7 @@ public final class JwtAuthAdapter {
     Objects.requireNonNull(authentication, "authentication cannot be null!");
 
     User user = userStorageAdapter.get(authentication.getEmail()).orElseThrow(
-        () -> new RuntimeException("No user exists by given email: " + authentication.getEmail()));
+        () -> new NotExistException("No user exists by given email: " + authentication.getEmail()));
     assertPassword(user, authentication.getPassword());
 
     return Jwts.builder().issuer(ISSUER).claims(Map.of("id", user.getId()))
@@ -48,16 +50,16 @@ public final class JwtAuthAdapter {
   }
 
   @SuppressWarnings({"java:S112"})
-  private void assertPassword(User user, String rawPassword) {
+  private void assertPassword(User user, String plainPassword) {
     try {
       byte[] salt = Arrays.copyOfRange(Hex.decodeHex(user.getPassword()), 0, 16);
-      byte[] passwordHash = CryptoUtils.hash(rawPassword, salt);
+      byte[] passwordHash = CryptoUtils.hash(plainPassword, salt);
       byte[] concatenatedSaltAndHash = Arrays.copyOf(salt, salt.length + passwordHash.length);
       System.arraycopy(passwordHash, 0, concatenatedSaltAndHash, salt.length, passwordHash.length);
-      String encodedRawPassword = Hex.encodeHexString(concatenatedSaltAndHash);
+      String encodedPasswordHash = Hex.encodeHexString(concatenatedSaltAndHash);
 
-      if (!encodedRawPassword.equals(user.getPassword())) {
-        throw new RuntimeException("Wrong password!");
+      if (!encodedPasswordHash.equals(user.getPassword())) {
+        throw new InvalidDataException("Wrong password!");
       }
     } catch (DecoderException e) {
       throw new RuntimeException("salt couldn't be extracted!");

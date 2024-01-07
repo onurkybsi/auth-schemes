@@ -19,5 +19,8 @@ logging:
 
 auth:
   scheme: apikey
-  jwt:
-    secret: dG9vbXVjaHNlY3JldHZhbHVldG9vbXVjaHNlY3JldHZhbHVl
+  adminUser:
+    firstName: "Onur"
+    lastName: "Kayabasi"
+    email: "o.kayabasi@outlook.com"
+  jwtSecret: dG9vbXVjaHNlY3JldHZhbHVldG9vbXVjaHNlY3JldHZhbHVl

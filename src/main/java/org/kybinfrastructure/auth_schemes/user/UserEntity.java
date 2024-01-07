@@ -44,7 +44,7 @@ class UserEntity {
   private String lastName;
 
   @NotNull
-  @Size(min = 0, max = 50)
+  @Size(min = 0, max = 255)
   @Email
   @Column(name = "email")
   private String email;

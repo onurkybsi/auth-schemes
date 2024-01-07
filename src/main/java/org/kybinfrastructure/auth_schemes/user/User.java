@@ -2,15 +2,19 @@ package org.kybinfrastructure.auth_schemes.user;
 
 import java.time.OffsetDateTime;
 import java.util.List;
-import org.kybinfrastructure.auth_schemes.common.Authority;
+import org.kybinfrastructure.auth_schemes.common.StrongPassword;
+import org.kybinfrastructure.auth_schemes.common.dto.Authority;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 
 @AllArgsConstructor
+@Builder
 @Data
 public final class User {
 
@@ -28,12 +32,14 @@ public final class User {
   private String lastName;
 
   @NotNull
-  @Size(min = 0, max = 50)
+  @Size(min = 0, max = 255)
+  @Email
   @JsonProperty(value = "email", required = true)
   private String email;
 
   @NotNull
   @Size(min = 0, max = 50)
+  @StrongPassword
   @JsonProperty(value = "password", required = true, access = JsonProperty.Access.WRITE_ONLY)
   private String password;
 

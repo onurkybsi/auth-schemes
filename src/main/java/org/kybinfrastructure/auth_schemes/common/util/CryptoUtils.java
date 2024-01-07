@@ -1,4 +1,4 @@
-package org.kybinfrastructure.auth_schemes.common;
+package org.kybinfrastructure.auth_schemes.common.util;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -11,18 +11,21 @@ import javax.crypto.spec.PBEKeySpec;
 
 public final class CryptoUtils {
 
-  private static final SecureRandom SECURE_RANDOM = new SecureRandom();
   private static final String HASHING_ALGORITHM = "PBKDF2WithHmacSHA512";
-  private static final int ITERATION_COUNT = 100000;
-  private static final int KEY_LENGTH = 512;
+  private static final int HASHING_ITERATION_COUNT = 100000;
+  private static final int HASHING_KEY_LENGTH = 512;
+  private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
-  private CryptoUtils() {}
+  private CryptoUtils() {
+    throw new UnsupportedOperationException("This class is not initiable!");
+  }
 
   public static byte[] hash(final String value, final byte[] salt) {
     Objects.requireNonNull(value, "value cannot be null!");
     Objects.requireNonNull(salt, "salt cannot be null!");
 
-    PBEKeySpec spec = new PBEKeySpec(value.toCharArray(), salt, ITERATION_COUNT, KEY_LENGTH);
+    PBEKeySpec spec =
+        new PBEKeySpec(value.toCharArray(), salt, HASHING_ITERATION_COUNT, HASHING_KEY_LENGTH);
 
     try {
       SecretKeyFactory factory = SecretKeyFactory.getInstance(HASHING_ALGORITHM);

@@ -1,16 +1,16 @@
 package org.kybinfrastructure.auth_schemes.rest;
 
 import java.util.Arrays;
-import java.util.stream.Stream;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
-import org.kybinfrastructure.auth_schemes.common.Authority;
-import org.kybinfrastructure.auth_schemes.common.CryptoUtils;
+import org.kybinfrastructure.auth_schemes.common.dto.Authority;
+import org.kybinfrastructure.auth_schemes.common.util.CryptoUtils;
 import org.kybinfrastructure.auth_schemes.user.UserStorageAdapter;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.lang.Nullable;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -34,59 +34,21 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 class SecurityConfiguration {
 
   @Bean
-  @ConditionalOnProperty(value = "auth.scheme", havingValue = "basic")
-  public SecurityFilterChain securityFilterChainForBasicAuth(HttpSecurity httpSecurity)
-      throws Exception {
-    return httpSecurity
-        .authorizeHttpRequests(c -> c.requestMatchers(HttpMethod.GET, "/users/**")
-            .hasAnyAuthority(Stream.of(Authority.Name.values()).map(Authority.Name::toString)
-                .toArray(String[]::new))
-            .requestMatchers(HttpMethod.POST, "/users").permitAll())
-        .httpBasic(Customizer.withDefaults()).csrf(c -> c.disable())
-        .sessionManagement(c -> c.disable()).build();
-  }
-
-  @Bean
-  @ConditionalOnProperty(value = "auth.scheme", havingValue = "token")
   public SecurityFilterChain securityFilterChainForTokenBased(HttpSecurity httpSecurity,
-      JwtTokenFilter jwtTokenFilter) throws Exception {
-    return httpSecurity
-        .authorizeHttpRequests(c -> c.requestMatchers(HttpMethod.GET, "/users/**")
-            .hasAnyAuthority(Stream.of(Authority.Name.values()).map(Authority.Name::toString)
-                .toArray(String[]::new))
-            .requestMatchers(HttpMethod.POST, "/users").permitAll().requestMatchers("/jwt")
-            .permitAll())
-        .csrf(c -> c.disable()).sessionManagement(c -> c.disable())
-        .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class).build();
+      @Value("${auth.scheme:basic}") String authScheme, @Nullable ApiKeyFilter apiKeyFilter,
+      @Nullable JwtTokenFilter jwtTokenFilter) throws Exception {
+    if ("token".equals(authScheme)) {
+      return configureDefaults(httpSecurity)
+          .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class).build();
+    } else if ("apikey".equals(authScheme)) {
+      return configureDefaults(httpSecurity)
+          .addFilterBefore(apiKeyFilter, UsernamePasswordAuthenticationFilter.class).build();
+    }
+    return configureDefaults(httpSecurity).httpBasic(Customizer.withDefaults()).build();
   }
 
   @Bean
-  @ConditionalOnProperty(value = "auth.scheme", havingValue = "apikey")
-  public SecurityFilterChain securityFilterChainForApiKey(HttpSecurity httpSecurity,
-      ApiKeyFilter apiKeyFilter) throws Exception {
-    AntPathRequestMatcher clientsGetEndpointsMatcher =
-        new AntPathRequestMatcher("/clients/**", HttpMethod.GET.toString());
-    AntPathRequestMatcher createClientEndpointMatcher =
-        new AntPathRequestMatcher("/clients", HttpMethod.POST.toString());
-    AntPathRequestMatcher usersGetEndpointsMatcher =
-        new AntPathRequestMatcher("/users/**", HttpMethod.GET.toString());
-    AntPathRequestMatcher createUserEndpointMatcher =
-        new AntPathRequestMatcher("/users", HttpMethod.POST.toString());
-
-    return httpSecurity
-        .authorizeHttpRequests(c -> c.requestMatchers(clientsGetEndpointsMatcher)
-            .hasAuthority(Authority.Name.BASIC.toString())
-            .requestMatchers(createClientEndpointMatcher)
-            .hasAuthority(Authority.Name.CREATE_CLIENT.toString())
-            .requestMatchers(usersGetEndpointsMatcher).hasAuthority(Authority.Name.BASIC.toString())
-            .requestMatchers(createUserEndpointMatcher)
-            .hasAuthority(Authority.Name.CREATE_USER.toString()))
-        .csrf(c -> c.disable()).sessionManagement(c -> c.disable())
-        .addFilterBefore(apiKeyFilter, UsernamePasswordAuthenticationFilter.class).build();
-  }
-
-  @Bean
-  public UserDetailsService userDetailsService(UserStorageAdapter userStorageAdapter) {
+  UserDetailsService userDetailsService(UserStorageAdapter userStorageAdapter) {
     return new UserDetailsService() {
       @Override
       public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -102,7 +64,7 @@ class SecurityConfiguration {
   }
 
   @Bean
-  public PasswordEncoder passwordEncoder() {
+  PasswordEncoder passwordEncoder() {
     return new PasswordEncoder() {
 
       @Override
@@ -135,7 +97,7 @@ class SecurityConfiguration {
   }
 
   @Bean
-  public AuthenticationManager authenticationManager(UserDetailsService userDetailsService,
+  AuthenticationManager authenticationManager(UserDetailsService userDetailsService,
       PasswordEncoder passwordEncoder) {
     DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
     authenticationProvider.setUserDetailsService(userDetailsService);
@@ -145,6 +107,27 @@ class SecurityConfiguration {
     providerManager.setEraseCredentialsAfterAuthentication(false);
 
     return providerManager;
+  }
+
+  private static HttpSecurity configureDefaults(HttpSecurity httpSecurity) throws Exception {
+    AntPathRequestMatcher clientsGetEndpointsMatcher =
+        new AntPathRequestMatcher("/clients/**", HttpMethod.GET.toString());
+    AntPathRequestMatcher createClientEndpointMatcher =
+        new AntPathRequestMatcher("/clients", HttpMethod.POST.toString());
+    AntPathRequestMatcher usersGetEndpointsMatcher =
+        new AntPathRequestMatcher("/users/**", HttpMethod.GET.toString());
+    AntPathRequestMatcher createUserEndpointMatcher =
+        new AntPathRequestMatcher("/users", HttpMethod.POST.toString());
+    AntPathRequestMatcher createJwtTokenEndpointMatcher =
+        new AntPathRequestMatcher("/jwt", HttpMethod.POST.toString());
+
+    return httpSecurity.authorizeHttpRequests(c -> c.requestMatchers(clientsGetEndpointsMatcher)
+        .hasAuthority(Authority.Name.BASIC.toString()).requestMatchers(createClientEndpointMatcher)
+        .hasAuthority(Authority.Name.CREATE_CLIENT.toString())
+        .requestMatchers(usersGetEndpointsMatcher).hasAuthority(Authority.Name.BASIC.toString())
+        .requestMatchers(createUserEndpointMatcher).permitAll()
+        .requestMatchers(createJwtTokenEndpointMatcher).permitAll()).csrf(c -> c.disable())
+        .sessionManagement(c -> c.disable());
   }
 
 }

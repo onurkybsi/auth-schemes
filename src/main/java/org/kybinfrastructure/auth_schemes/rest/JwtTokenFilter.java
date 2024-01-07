@@ -10,7 +10,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import io.jsonwebtoken.Claims;
@@ -25,15 +24,15 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Component
 @ConditionalOnProperty(value = "auth.scheme", havingValue = "token")
-@Slf4j
 final class JwtTokenFilter extends OncePerRequestFilter {
 
   private final SecretKey jwtSecret;
   private final UserStorageAdapter userStorageAdapter;
 
-  public JwtTokenFilter(@NonNull @Value("${auth.jwt.secret}") String jwtSecret,
+  public JwtTokenFilter(@NonNull @Value("${auth.jwtSecret}") String jwtSecret,
       UserStorageAdapter userStorageAdapter) {
     this.jwtSecret = Keys.hmacShaKeyFor(jwtSecret.getBytes());
     this.userStorageAdapter = userStorageAdapter;
@@ -65,7 +64,6 @@ final class JwtTokenFilter extends OncePerRequestFilter {
         new UsernamePasswordAuthenticationToken(User.builder()
             .username(authenticatedUser.getEmail()).password(authenticatedUser.getPassword())
             .disabled(false).authorities(grantedAuthorities).build(), null, grantedAuthorities);
-    authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
     SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 
     filterChain.doFilter(request, response);

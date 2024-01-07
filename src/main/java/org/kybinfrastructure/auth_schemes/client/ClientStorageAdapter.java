@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.StreamSupport;
-import org.kybinfrastructure.auth_schemes.common.CryptoUtils;
+import org.kybinfrastructure.auth_schemes.common.util.CryptoUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.AccessLevel;

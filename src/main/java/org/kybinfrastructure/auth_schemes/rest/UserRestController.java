@@ -1,12 +1,14 @@
 package org.kybinfrastructure.auth_schemes.rest;
 
 import java.util.List;
+import org.kybinfrastructure.auth_schemes.common.dto.Authority;
 import org.kybinfrastructure.auth_schemes.user.User;
 import org.kybinfrastructure.auth_schemes.user.UserStorageAdapter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -38,10 +40,16 @@ class UserRestController {
   }
 
   @GetMapping(value = "/{id}", produces = {"application/json"})
-  @PostAuthorize("returnObject.body.email == authentication.principal.username or hasAuthority('GET_ALL_USERS')")
-  public ResponseEntity<User> get(@PathVariable("id") Long id) {
-    return userStorageAdapter.get(id).map(ResponseEntity::ok)
-        .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+  @PostAuthorize("returnObject.statusCodeValue == 200 ? returnObject.body.email == authentication.principal.username or hasAuthority('GET_ALL_USERS') : true")
+  public ResponseEntity<User> get(@PathVariable("id") Long id, Authentication authentication) {
+    return userStorageAdapter.get(id).map(ResponseEntity::ok).orElseGet(() -> {
+      if (authentication.getAuthorities().stream()
+          .anyMatch(a -> Authority.Name.GET_ALL_USERS.toString().equals(a.getAuthority()))) {
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+      } else {
+        return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+      }
+    });
   }
 
 }

@@ -1,4 +1,4 @@
-package org.kybinfrastructure.auth_schemes.common;
+package org.kybinfrastructure.auth_schemes.common.dto;
 
 import java.time.OffsetDateTime;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -22,7 +22,7 @@ public final class Authority {
 
   public enum Name {
 
-    BASIC, GET_ALL_USERS, CREATE_USER, GET_ALL_CLIENTS, CREATE_CLIENT
+    BASIC, GET_ALL_USERS, GET_ALL_CLIENTS, CREATE_CLIENT
 
   }
 

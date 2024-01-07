@@ -1,15 +1,14 @@
-package org.kybinfrastructure.auth_schemes.client;
+package org.kybinfrastructure.auth_schemes.user;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Stream;
 import org.apache.commons.codec.binary.Hex;
-import org.kybinfrastructure.auth_schemes.client.ClientAuthorityEntity.AuthorityId;
 import org.kybinfrastructure.auth_schemes.common.dto.Authority;
 import org.kybinfrastructure.auth_schemes.common.util.CryptoUtils;
 import org.kybinfrastructure.auth_schemes.common.util.TimeUtils;
+import org.kybinfrastructure.auth_schemes.user.UserAuthorityEntity.AuthorityId;
 import org.springframework.stereotype.Component;
 import lombok.AccessLevel;
 import lombok.NonNull;
@@ -17,16 +16,17 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 @Component
-final class ClientMapper {
+final class UserMapper {
 
   @NonNull
   private final TimeUtils timeUtils;
 
-  ClientEntity toEntityForCreation(String plainSecretKey, Client dto) {
-    ClientEntity entity = new ClientEntity();
-    entity.setName(dto.getName());
-    entity.setApiKey(UUID.randomUUID().toString());
-    entity.setHashedApiSecret(toHashedSecretKey(plainSecretKey));
+  UserEntity toEntityForCreation(User dto) {
+    UserEntity entity = new UserEntity();
+    entity.setFirstName(dto.getFirstName());
+    entity.setLastName(dto.getLastName());
+    entity.setEmail(dto.getEmail());
+    entity.setHashedPassword(toHashedPassword(dto.getPassword()));
     entity.setAuthorities(
         Optional.ofNullable(dto.getAuthorities()).map(a -> a.stream().map(this::toEntity))
             .map(Stream::toList).orElse(getDefaultClientAuthorities()));
@@ -35,35 +35,35 @@ final class ClientMapper {
     return entity;
   }
 
-  Client toDto(ClientEntity entity) {
-    return new Client(entity.getId(), entity.getName(), entity.getApiKey(),
-        entity.getHashedApiSecret(),
-        entity.getAuthorities().stream().map(ClientMapper::toDto).toList(),
+  User toDto(UserEntity entity) {
+    return new User(entity.getId(), entity.getFirstName(), entity.getLastName(), entity.getEmail(),
+        entity.getHashedPassword(),
+        entity.getAuthorities().stream().map(UserMapper::toDto).toList(),
         entity.getModificationDate(), entity.getCreationDate());
   }
 
-  private ClientAuthorityEntity toEntity(Authority dto) {
-    return new ClientAuthorityEntity(new AuthorityId(null, dto.getName().toString()),
+  private UserAuthorityEntity toEntity(Authority dto) {
+    return new UserAuthorityEntity(new AuthorityId(null, dto.getName().toString()),
         timeUtils.now());
   }
 
-  private List<ClientAuthorityEntity> getDefaultClientAuthorities() {
-    ClientAuthorityEntity defaultAuthority = new ClientAuthorityEntity();
+  private List<UserAuthorityEntity> getDefaultClientAuthorities() {
+    UserAuthorityEntity defaultAuthority = new UserAuthorityEntity();
     defaultAuthority.setId(AuthorityId.builder().name(Authority.Name.BASIC.toString()).build());
     defaultAuthority.setCreationDate(timeUtils.now());
 
     return List.of(defaultAuthority);
   }
 
-  private static String toHashedSecretKey(String plainSecretKey) {
+  private static String toHashedPassword(String plainPassword) {
     byte[] salt = CryptoUtils.generateSalt(16);
-    byte[] secretKeyHash = CryptoUtils.hash(plainSecretKey, salt);
-    byte[] concatenatedSaltAndHash = Arrays.copyOf(salt, salt.length + secretKeyHash.length);
-    System.arraycopy(secretKeyHash, 0, concatenatedSaltAndHash, salt.length, secretKeyHash.length);
+    byte[] passowordHash = CryptoUtils.hash(plainPassword, salt);
+    byte[] concatenatedSaltAndHash = Arrays.copyOf(salt, salt.length + passowordHash.length);
+    System.arraycopy(passowordHash, 0, concatenatedSaltAndHash, salt.length, passowordHash.length);
     return Hex.encodeHexString(concatenatedSaltAndHash);
   }
 
-  private static Authority toDto(ClientAuthorityEntity entity) {
+  private static Authority toDto(UserAuthorityEntity entity) {
     return new Authority(Authority.Name.valueOf(entity.getId().getName()),
         entity.getCreationDate());
   }

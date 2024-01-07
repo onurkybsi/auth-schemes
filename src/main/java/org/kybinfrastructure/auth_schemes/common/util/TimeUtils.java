@@ -1,4 +1,4 @@
-package org.kybinfrastructure.auth_schemes.common;
+package org.kybinfrastructure.auth_schemes.common.util;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -6,7 +6,7 @@ import java.time.OffsetDateTime;
 import org.springframework.stereotype.Component;
 
 @Component
-public class TimeUtils { // NOSONAR
+public final class TimeUtils { // NOSONAR
 
   private final Clock clock;
 

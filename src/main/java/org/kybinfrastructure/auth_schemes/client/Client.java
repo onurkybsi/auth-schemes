@@ -2,7 +2,7 @@ package org.kybinfrastructure.auth_schemes.client;
 
 import java.time.OffsetDateTime;
 import java.util.List;
-import org.kybinfrastructure.auth_schemes.common.Authority;
+import org.kybinfrastructure.auth_schemes.common.dto.Authority;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
