@@ -44,8 +44,8 @@ class ClientEntity {
 
   @NotNull
   @Size(min = 0, max = 255)
-  @Column(name = "hashed_api_secret")
-  private String hashedApiSecret;
+  @Column(name = "hashed_client_secret")
+  private String hashedClientSecret;
 
   @NotNull
   @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)

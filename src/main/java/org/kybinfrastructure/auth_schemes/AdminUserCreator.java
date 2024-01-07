@@ -1,4 +1,4 @@
-package org.kybinfrastructure.auth_schemes.rest;
+package org.kybinfrastructure.auth_schemes;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;

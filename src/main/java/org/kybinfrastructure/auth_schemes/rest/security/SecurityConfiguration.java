@@ -1,4 +1,4 @@
-package org.kybinfrastructure.auth_schemes.rest;
+package org.kybinfrastructure.auth_schemes.rest.security;
 
 import java.util.Arrays;
 import org.apache.commons.codec.DecoderException;

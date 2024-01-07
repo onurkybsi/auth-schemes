@@ -1,4 +1,4 @@
-package org.kybinfrastructure.auth_schemes.rest;
+package org.kybinfrastructure.auth_schemes.rest.security;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -14,6 +14,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import jakarta.servlet.FilterChain;
@@ -59,6 +60,7 @@ final class ApiKeyFilter extends OncePerRequestFilter {
         new UsernamePasswordAuthenticationToken(User.builder().username(client.get().getApiKey())
             .password(clientSecret).authorities(grantedAuthorities).build(), null,
             grantedAuthorities);
+    authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
     SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 
     filterChain.doFilter(request, response);
@@ -67,14 +69,14 @@ final class ApiKeyFilter extends OncePerRequestFilter {
   @SuppressWarnings({"java:S112"})
   private boolean isClientSecretValid(Client client, String givenClientSecret) {
     try {
-      byte[] salt = Arrays.copyOfRange(Hex.decodeHex(client.getHashedApiSecret()), 0, 16);
+      byte[] salt = Arrays.copyOfRange(Hex.decodeHex(client.getHashedClientSecret()), 0, 16);
       byte[] givenSecretHash = CryptoUtils.hash(givenClientSecret, salt);
       byte[] concatenatedSaltAndHash = Arrays.copyOf(salt, salt.length + givenSecretHash.length);
       System.arraycopy(givenSecretHash, 0, concatenatedSaltAndHash, salt.length,
           givenSecretHash.length);
       String encodedGivenClientSecretHash = Hex.encodeHexString(concatenatedSaltAndHash);
 
-      return encodedGivenClientSecretHash.equals(client.getHashedApiSecret());
+      return encodedGivenClientSecretHash.equals(client.getHashedClientSecret());
     } catch (DecoderException e) {
       throw new RuntimeException("salt couldn't be extracted!");
     }

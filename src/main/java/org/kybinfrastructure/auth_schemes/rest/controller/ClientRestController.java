@@ -1,4 +1,4 @@
-package org.kybinfrastructure.auth_schemes.rest;
+package org.kybinfrastructure.auth_schemes.rest.controller;
 
 import java.util.List;
 import org.kybinfrastructure.auth_schemes.client.Client;

@@ -13,7 +13,7 @@ public final class ClientCredentials {
   @JsonProperty(value = "apiKey", access = JsonProperty.Access.READ_ONLY)
   private String apiKey;
 
-  @JsonProperty(value = "apiSecret", access = JsonProperty.Access.READ_ONLY)
-  private String apiSecret;
+  @JsonProperty(value = "clientSecret", access = JsonProperty.Access.READ_ONLY)
+  private String clientSecret;
 
 }

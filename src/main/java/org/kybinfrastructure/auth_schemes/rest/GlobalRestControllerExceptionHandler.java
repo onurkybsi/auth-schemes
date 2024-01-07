@@ -47,7 +47,7 @@ class GlobalRestControllerExceptionHandler extends ResponseEntityExceptionHandle
   }
 
   @ExceptionHandler(InvalidDataException.class)
-  protected ResponseEntity<Object> handleNotExistExceptions(InvalidDataException ex,
+  protected ResponseEntity<Object> handleInvalidDataExceptions(InvalidDataException ex,
       WebRequest request) {
     log.error(ex.getMessage(), ex);
     return new ResponseEntity<>(ErrorResponse.builder().status(HttpStatus.BAD_REQUEST.value())

@@ -22,11 +22,11 @@ final class ClientMapper {
   @NonNull
   private final TimeUtils timeUtils;
 
-  ClientEntity toEntityForCreation(String plainSecretKey, Client dto) {
+  ClientEntity toEntityForCreation(String plainClientSecret, Client dto) {
     ClientEntity entity = new ClientEntity();
     entity.setName(dto.getName());
     entity.setApiKey(UUID.randomUUID().toString());
-    entity.setHashedApiSecret(toHashedSecretKey(plainSecretKey));
+    entity.setHashedClientSecret(toHashedClientSecret(plainClientSecret));
     entity.setAuthorities(
         Optional.ofNullable(dto.getAuthorities()).map(a -> a.stream().map(this::toEntity))
             .map(Stream::toList).orElse(getDefaultClientAuthorities()));
@@ -37,7 +37,7 @@ final class ClientMapper {
 
   Client toDto(ClientEntity entity) {
     return new Client(entity.getId(), entity.getName(), entity.getApiKey(),
-        entity.getHashedApiSecret(),
+        entity.getHashedClientSecret(),
         entity.getAuthorities().stream().map(ClientMapper::toDto).toList(),
         entity.getModificationDate(), entity.getCreationDate());
   }
@@ -55,11 +55,11 @@ final class ClientMapper {
     return List.of(defaultAuthority);
   }
 
-  private static String toHashedSecretKey(String plainSecretKey) {
+  private static String toHashedClientSecret(String plainClientSecret) {
     byte[] salt = CryptoUtils.generateSalt(16);
-    byte[] secretKeyHash = CryptoUtils.hash(plainSecretKey, salt);
-    byte[] concatenatedSaltAndHash = Arrays.copyOf(salt, salt.length + secretKeyHash.length);
-    System.arraycopy(secretKeyHash, 0, concatenatedSaltAndHash, salt.length, secretKeyHash.length);
+    byte[] secretHash = CryptoUtils.hash(plainClientSecret, salt);
+    byte[] concatenatedSaltAndHash = Arrays.copyOf(salt, salt.length + secretHash.length);
+    System.arraycopy(secretHash, 0, concatenatedSaltAndHash, salt.length, secretHash.length);
     return Hex.encodeHexString(concatenatedSaltAndHash);
   }
 

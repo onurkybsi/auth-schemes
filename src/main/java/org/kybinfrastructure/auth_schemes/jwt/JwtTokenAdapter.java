@@ -49,7 +49,6 @@ public final class JwtTokenAdapter {
         .compact();
   }
 
-  @SuppressWarnings({"java:S112"})
   private void assertPassword(User user, String plainPassword) {
     try {
       byte[] salt = Arrays.copyOfRange(Hex.decodeHex(user.getPassword()), 0, 16);
@@ -62,7 +61,7 @@ public final class JwtTokenAdapter {
         throw new InvalidDataException("Wrong password!");
       }
     } catch (DecoderException e) {
-      throw new RuntimeException("salt couldn't be extracted!");
+      throw new RuntimeException("salt couldn't be extracted!"); // NOSONAR
     }
   }
 

@@ -28,7 +28,7 @@ public final class Client {
   private String apiKey;
 
   @JsonIgnore
-  private String hashedApiSecret;
+  private String hashedClientSecret;
 
   @JsonProperty(value = "authorities", access = JsonProperty.Access.READ_ONLY)
   private List<Authority> authorities;

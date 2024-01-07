@@ -1,4 +1,4 @@
-package org.kybinfrastructure.auth_schemes.rest;
+package org.kybinfrastructure.auth_schemes.rest.controller;
 
 import org.kybinfrastructure.auth_schemes.jwt.Authentication;
 import org.kybinfrastructure.auth_schemes.jwt.JwtTokenAdapter;

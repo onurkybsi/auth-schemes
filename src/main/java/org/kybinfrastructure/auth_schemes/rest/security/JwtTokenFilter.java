@@ -1,4 +1,4 @@
-package org.kybinfrastructure.auth_schemes.rest;
+package org.kybinfrastructure.auth_schemes.rest.security;
 
 import java.io.IOException;
 import javax.crypto.SecretKey;
@@ -10,6 +10,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import io.jsonwebtoken.Claims;
@@ -64,6 +65,7 @@ final class JwtTokenFilter extends OncePerRequestFilter {
         new UsernamePasswordAuthenticationToken(User.builder()
             .username(authenticatedUser.getEmail()).password(authenticatedUser.getPassword())
             .disabled(false).authorities(grantedAuthorities).build(), null, grantedAuthorities);
+    authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
     SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 
     filterChain.doFilter(request, response);

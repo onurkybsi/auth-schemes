@@ -32,15 +32,16 @@ public class ClientStorageAdapter {
   public ClientCredentials create(Client clientToCreate) {
     Objects.requireNonNull(clientToCreate, "clientToCreate cannot be null!");
 
-    String plainSecretKey = CryptoUtils.generateSecretKey();
-    ClientEntity clientEntityToCreate = mapper.toEntityForCreation(plainSecretKey, clientToCreate);
+    String plainClientSecret = CryptoUtils.generateSecretKey();
+    ClientEntity clientEntityToCreate =
+        mapper.toEntityForCreation(plainClientSecret, clientToCreate);
     ClientEntity createdClientEntity = clientRepository.save(clientEntityToCreate);
 
     List<ClientAuthorityEntity> authorityEntitiesToCreate = createdClientEntity.getAuthorities();
     authorityEntitiesToCreate.forEach(e -> e.getId().setClientId(createdClientEntity.getId()));
     authorityRepository.saveAll(authorityEntitiesToCreate);
 
-    return new ClientCredentials(clientEntityToCreate.getApiKey(), plainSecretKey);
+    return new ClientCredentials(clientEntityToCreate.getApiKey(), plainClientSecret);
   }
 
   @Transactional(readOnly = true)
