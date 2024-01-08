@@ -2,6 +2,7 @@ package org.kybinfrastructure.auth_schemes.rest.security;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Optional;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
@@ -9,12 +10,11 @@ import org.kybinfrastructure.auth_schemes.client.Client;
 import org.kybinfrastructure.auth_schemes.client.ClientStorageAdapter;
 import org.kybinfrastructure.auth_schemes.common.util.CryptoUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import jakarta.servlet.FilterChain;
@@ -22,6 +22,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -56,12 +57,8 @@ final class ApiKeyFilter extends OncePerRequestFilter {
 
     var grantedAuthorities = client.get().getAuthorities().stream()
         .map(a -> new SimpleGrantedAuthority(a.getName().toString())).toList();
-    UsernamePasswordAuthenticationToken authenticationToken =
-        new UsernamePasswordAuthenticationToken(User.builder().username(client.get().getApiKey())
-            .password(clientSecret).authorities(grantedAuthorities).build(), null,
-            grantedAuthorities);
-    authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-    SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+    SecurityContextHolder.getContext()
+        .setAuthentication(new ApiKeyAuthentication(apiKey, grantedAuthorities, true));
 
     filterChain.doFilter(request, response);
   }
@@ -80,6 +77,52 @@ final class ApiKeyFilter extends OncePerRequestFilter {
     } catch (DecoderException e) {
       throw new RuntimeException("salt couldn't be extracted!");
     }
+  }
+
+  @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
+  @AllArgsConstructor(access = AccessLevel.PACKAGE)
+  static class ApiKeyAuthentication implements Authentication {
+
+    private final String apiKey;
+    private final Collection<? extends GrantedAuthority> authorities;
+
+    private boolean isAuthenticated;
+
+    @Override
+    public String getName() {
+      return this.getPrincipal() != null ? this.getPrincipal().toString() : null;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+      return authorities;
+    }
+
+    @Override
+    public Object getCredentials() {
+      return null;
+    }
+
+    @Override
+    public Object getDetails() {
+      return null;
+    }
+
+    @Override
+    public Object getPrincipal() {
+      return apiKey;
+    }
+
+    @Override
+    public boolean isAuthenticated() {
+      return isAuthenticated;
+    }
+
+    @Override
+    public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
+      this.isAuthenticated = isAuthenticated;
+    }
+
   }
 
 }

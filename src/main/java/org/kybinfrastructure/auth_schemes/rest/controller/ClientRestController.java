@@ -42,7 +42,7 @@ class ClientRestController {
   }
 
   @GetMapping(value = "/{id}", produces = {"application/json"})
-  @PostAuthorize("returnObject.statusCodeValue == 200 ? returnObject.body.apiKey == authentication.principal.username or hasAuthority('GET_ALL_CLIENTS') : true")
+  @PostAuthorize("returnObject.statusCodeValue == 200 ? returnObject.body.apiKey == authentication.principal or hasAuthority('GET_ALL_CLIENTS') : true")
   public ResponseEntity<Client> get(@PathVariable("id") Long id, Authentication authentication) {
     return clientStorageAdapter.getById(id).map(ResponseEntity::ok).orElseGet(() -> {
       if (authentication.getAuthorities().stream()

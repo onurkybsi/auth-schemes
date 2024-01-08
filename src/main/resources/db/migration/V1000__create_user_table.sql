@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS client (
   id SERIAL PRIMARY KEY,
   name VARCHAR UNIQUE NOT NULL,
   api_key VARCHAR UNIQUE NOT NULL,
-  hashed_api_secret VARCHAR NOT NULL,
+  hashed_client_secret VARCHAR NOT NULL,
   modification_date TIMESTAMP NOT NULL,
   creation_date TIMESTAMP NOT NULL
 );

@@ -40,7 +40,7 @@ class UserRestController {
   }
 
   @GetMapping(value = "/{id}", produces = {"application/json"})
-  @PostAuthorize("returnObject.statusCodeValue == 200 ? returnObject.body.email == authentication.principal.username or hasAuthority('GET_ALL_USERS') : true")
+  @PostAuthorize("returnObject.statusCodeValue == 200 ? returnObject.body.id == authentication.principal or hasAuthority('GET_ALL_USERS') : true")
   public ResponseEntity<User> get(@PathVariable("id") Long id, Authentication authentication) {
     return userStorageAdapter.get(id).map(ResponseEntity::ok).orElseGet(() -> {
       if (authentication.getAuthorities().stream()
