@@ -2,7 +2,6 @@ package org.kybinfrastructure.auth_schemes.rest.security;
 
 import java.io.IOException;
 import java.util.Collection;
-import javax.crypto.SecretKey;
 import org.kybinfrastructure.auth_schemes.user.UserStorageAdapter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -16,6 +15,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.FilterChain;
@@ -30,12 +30,12 @@ import lombok.extern.slf4j.Slf4j;
 @ConditionalOnProperty(value = "auth.scheme", havingValue = "token")
 final class JwtTokenFilter extends OncePerRequestFilter {
 
-  private final SecretKey jwtSecret;
+  private final JwtParser parser;
   private final UserStorageAdapter userStorageAdapter;
 
   public JwtTokenFilter(@NonNull @Value("${auth.jwtSecret}") String jwtSecret,
       UserStorageAdapter userStorageAdapter) {
-    this.jwtSecret = Keys.hmacShaKeyFor(jwtSecret.getBytes());
+    this.parser = Jwts.parser().verifyWith(Keys.hmacShaKeyFor(jwtSecret.getBytes())).build();
     this.userStorageAdapter = userStorageAdapter;
   }
 
@@ -69,7 +69,7 @@ final class JwtTokenFilter extends OncePerRequestFilter {
 
   private Jws<Claims> deserializeJwtToken(String jwtTokenRaw) {
     try {
-      return Jwts.parser().verifyWith(jwtSecret).build().parseSignedClaims(jwtTokenRaw);
+      return parser.parseSignedClaims(jwtTokenRaw);
     } catch (JwtException e) {
       return null;
     }
